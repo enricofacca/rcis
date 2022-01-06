@@ -23,11 +23,11 @@ Overview
     :alt: GitHub Actions Build Status
     :target: https://github.com/enricofacca/rcis/actions
 
-.. |requires| image:: https://requires.io/github/enricofacca/rcis/requirements.svg?branch=main
+.. |requires| image:: https://requires.io/github/enricofacca/rcis/requirements.svg?branch=master
     :alt: Requirements Status
-    :target: https://requires.io/github/enricofacca/rcis/requirements/?branch=main
+    :target: https://requires.io/github/enricofacca/rcis/requirements/?branch=master
 
-.. |codecov| image:: https://codecov.io/gh/enricofacca/rcis/branch/main/graphs/badge.svg?branch=main
+.. |codecov| image:: https://codecov.io/gh/enricofacca/rcis/branch/master/graphs/badge.svg?branch=master
     :alt: Coverage Status
     :target: https://codecov.io/github/enricofacca/rcis
 
@@ -49,7 +49,7 @@ Overview
 
 .. |commits-since| image:: https://img.shields.io/github/commits-since/enricofacca/rcis/v0.0.0.svg
     :alt: Commits since latest release
-    :target: https://github.com/enricofacca/rcis/compare/v0.0.0...main
+    :target: https://github.com/enricofacca/rcis/compare/v0.0.0...master
 
 
 
@@ -68,7 +68,7 @@ Installation
 
 You can also install the in-development version with::
 
-    pip install https://github.com/enricofacca/rcis/archive/main.zip
+    pip install https://github.com/enricofacca/rcis/archive/master.zip
 
 
 Documentation
