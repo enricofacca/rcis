@@ -1,5 +1,5 @@
 Tests/Examples
-=========
+==============
 
 .. toctree::
     :glob:

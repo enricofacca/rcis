@@ -39,22 +39,26 @@ class Real:
         f.write(self.x)  
         f.close()  
 
-
-class Parabola: 
-    """
+# the r before comment allows to write Latex expression containg backslash
+class Parabola:
+    r"""
     Class describing a parabola.
 
     It contains the coeffients  a, b descringing the parabola
-    y=a*x^2/2 + b*x
+    :math: `y=a \frac{x^2}{2} + bx`
     
     Args:
         a (float): Parabola concavity (term :math:`a \frac{x^2}{2}`)
         b (float): Parabola linear term (term :math:`b x`)
-    """
+    """    
     def __init__(self, a, b=0, lb=-1e30, up=1e30):
-        #: a (float): Parabola coefficient :math:`a \frac{x^2}{2}`
+        """
+        Constructor Parabola
+        """
+
+        #: a (float): Parabola quadratic coefficient :math:`a \frac{x^2}{2}`
         self.a = a
-        #: b (float): Parabola coefficient :math:`b x`
+        #: b (float): Parabola linear coefficient :math: `b x~
         self.b = b
         #: lower_bound (float): Lower bound for solution
         self.lower_bound = lb
