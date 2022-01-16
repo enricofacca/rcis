@@ -12,22 +12,22 @@ class Solver(ABC):
     """
 
     @abstractmethod
-    def iterate(self, problem, unknows):
+    def iterate(self, problem, solution):
         """
         Abstract interface for iterate procedure.
 
         Args:
             problem: Any class describing a problem.
-            unknows: Any class describing a problem unknows.
+            solution: Any class describing a problem solution.
 
         Returns:
             self: We return the solver to get statistics
-            unknows: Updated solution
+            solution: Updated solution
             ierr (int): Error flag.
                 ierr == 0 no error occured.
-                ierr != 0 unknows may not be accurate.
+                ierr != 0 solution may not be accurate.
         """
-        return self, unknows, ierr
+        return self, solution, ierr
 
 
 class CycleControls:
@@ -74,9 +74,6 @@ class CycleControls:
         #: User comunication flag
         #: 1->set inputs, 2->stop criteria 3->study
         self.flag = 0
-        #: Second user communication to request for solver controls
-        #: 1: controls next update 2: controls after failed update
-        self.request = 0
 
         #: int: State comunication flag
         self.ierr = 0
@@ -91,8 +88,30 @@ class CycleControls:
         #: float: Cpu conter
         self.cpu_time = 0
 
+    def task_description(self, flag):
+        """Produce a string describing the task associated to flag
+        Args:
+            flag(int): Flag 
+        Returns:
+            msg(str): Task description
+        """
+        if flag == 1:
+            msg = "Compute if convergence is achieved. Set flag=-1 and ierr=0."
+        if flag == 2:
+            msg = "Study system."
+        if flag == 3:
+            msg = "Set solver controls for next update."
+        if flag == 4:
+            msg = "Set solver controls after failure."
+        if flag == 5:
+            msg = "Set problem input."
+        return msg
 
-    def reverse_communication(self, solver, problem, unknows):
+            
+            
+            
+            
+    def reverse_communication(self, solver, problem, solution):
         """
         Subroutine to run reverse communition approach
         of iterative solver.
@@ -100,22 +119,21 @@ class CycleControls:
         Args:
             solver (Solver): Class with iterate method
             problem: Problem description
-            unknows: Problem unknows
+            solution: Problem solution
 
         Returns:
             self (CycleControls): Returning changed class.
                 Counters and statistics are changed.
             solver (Solver): Class modified with statistics
                              of application.
-            unknows: Updated solution.
+            solution: Updated solution.
         """
 
         if self.flag == 0:
             """Begin cycle. User can now study the system"""
             self.flag = 2
-            self.request = 0
             self.ierr = 0
-            return self, unknows, solver
+            return self, solution, solver
 
         if self.flag == 1:
             """An iteration was completed and user checked if converge was
@@ -129,40 +147,37 @@ class CycleControls:
                 if self.verbose >= 1:
                     print("Update Number exceed limits" + str(self.max_iterations))
                 # break cycle
-                return self, unknows, solver
+                return self, solution, solver
 
             # we tell the user that he/she can studies the Let the use
             # study the system
-            self.nrestarts = 0  # we reset the count of restart
+            self.restarts = 0  # we reset the count of restart
             self.flag = 2
             self.ierr = 0
-            return self, unknows, solver
+            return self, solution, solver
 
         if self.flag == 2:
             """User studied the updated system.
             Now, we need solver controls for next update."""
             self.flag = 3
-            self.request = 1
             self.ierr = 0
-            return self, unknows, solver
+            return self, solution, solver
 
         if self.flag == 4:
             """And error occured after update.  Now, user must change the solver
             controls for trying further iteration"""
-            self.flag = 4
-            self.request = 1
-            self.ierr = 0
-            return self, unknows, solver
-
-        if (self.flag == 3) or (self.flag == 4):
-            """ " User set or reset solver controls.  Now, use must set new problem
-            inputs, if required"""
             self.flag = 5
-            self.request = 1
             self.ierr = 0
-            return self, unknows, solver
+            return self, solution, solver
 
-        if self.flag == 5:
+        if (self.flag == 3) or (self.flag == 5):
+            """User set or reset solver controls.  Now, use must set new problem
+            inputs, if required"""
+            self.flag = 6
+            self.ierr = 0
+            return self, solution, solver
+
+        if self.flag == 6:
             """User set/reset solver controls and problem inputs
             Now we update try to iterate"""
             self.ierr = 0
@@ -178,7 +193,6 @@ class CycleControls:
                 if self.verbose >= 1:
                     print(" ")
                     print("UPDATE " + str(self.iterations + 1))
-                cpu_update = 0.0
             else:
                 print(
                     "UPDATE "
@@ -187,10 +201,10 @@ class CycleControls:
                     + str(self.restarts)
                 )
 
-            # update unknows
+            # update solution
             start_time = cputiming.time()
-            [unknows, ierr, solver] = solver.iterate(problem, unknows)
-            cpu_update += cputiming.time() - start_time
+            [solution, ierr, solver] = solver.iterate(problem, solution)
+            cpu_update = cputiming.time() - start_time
 
             # different action according to ierr
             if ierr == 0:
@@ -212,7 +226,6 @@ class CycleControls:
 
                 """ Ask to the user to evalute if stop cycling """
                 self.flag = 1
-                self.request = 1
                 self.ierr = 0
 
             elif ierr > 0:
@@ -225,42 +238,14 @@ class CycleControls:
                 # Stop if number max restart update is passed
                 if self.restarts >= self.max_restarts:
                     self.flag = -1  # breaking cycle
-                    self.request = 0
                     self.ierr = ierr
                 else:
                     # Ask the user to reset controls and problem inputs
                     self.flag = 4
-                    self.request = 2
                     self.ierr = ierr
             elif ierr < 0:
                 # Solver return negative ierr to ask more inputs
-                self.flag = 5
-                self.request = 2
+                self.flag = 6
                 self.ierr = ierr
 
-            return self, unknows, solver
-
-
-class ConstrainedSolver(ABC):
-    """
-    Abstract procedure describing the solver syncronizing i.e.,
-    action of the solver on the problem unknows so they fit
-    into potential problem constraints.
-
-    Args:
-    problem : class describing problem setup
-    unknows : class describing problem solution
-
-    Returns:
-    self    : solver class. We return the solver
-              to read statistic.
-    unknows : updated solution after one
-    ierr    : integer ==0 if no error occurred.
-              Values different from 0 are used to
-              identifity the error occured
-
-    """
-
-    @abstractmethod
-    def syncronize(self, problem, unknows):
-        return self, unknows, ierr
+            return self, solution, solver
