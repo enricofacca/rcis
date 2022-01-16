@@ -194,11 +194,12 @@ class CycleControls:
                     print(" ")
                     print("UPDATE " + str(self.iterations + 1))
             else:
-                print(
-                    "UPDATE "
-                    + str(self.iterations + 1)
-                    + " | RESTART = "
-                    + str(self.restarts)
+                if self.verbose >= 1:
+                    print(
+                        "UPDATE "
+                        + str(self.iterations + 1)
+                        + " | RESTART = "
+                        + str(self.restarts)
                 )
 
             # update solution
@@ -230,7 +231,8 @@ class CycleControls:
 
             elif ierr > 0:
                 """Update failed"""
-                print("UPDATE FAILURE")
+                if self.verbose >= 1:
+                    print("UPDATE FAILURE")
 
                 # Try one restart more
                 self.restarts += 1

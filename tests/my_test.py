@@ -168,7 +168,8 @@ class ParabolaDescent(Solver):
         if self.infos.iterate_counter % 10 == 0:
             ierr = 1
         if not ierr == 0:
-            print('An error occured')
+            if self.ctrl.verbose >= 1:
+                print('An error occured')
 
         return solution, ierr, self
 
@@ -251,7 +252,8 @@ def test_main(verbose=0):
             grad_desc.ctrl.step = max(
                 min(grad_desc.ctrl.step * step_expansion, max_step), min_step
             )
-            print("New time step", grad_desc.ctrl.step)
+            if verbose >= 2:
+                print("New time step", grad_desc.ctrl.step)
         
             
             # We copy data before update
@@ -266,7 +268,8 @@ def test_main(verbose=0):
             grad_desc.ctrl.step = max(
                 min(grad_desc.ctrl.step / step_contraction, max_step), min_step
             )
-            print("Shrinking time step", grad_desc.ctrl.step)
+            if verbose >= 1:
+                print("Shrinking time step", grad_desc.ctrl.step)
 
             sol = cp(sol_old)
 
@@ -293,4 +296,4 @@ def test_main(verbose=0):
 
 
 if __name__ == "__main__":
-    sys.exit(test_main(1))
+    sys.exit(test_main(0))
