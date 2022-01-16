@@ -42,10 +42,12 @@ html_sidebars = {
 }
 html_short_title = '%s-%s' % (project, version)
 
-napoleon_use_ivar = True
+napoleon_use_ivar = False
 napoleon_use_rtype = False
 napoleon_use_param = False
 napoleon_include_init_with_doc = True
+napoleon_custom_sections = [('Returns', 'params_style')]
+
 
 autodoc_typehints='description'
 autodoc_typehints_format='short'

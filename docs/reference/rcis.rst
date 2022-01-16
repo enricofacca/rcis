@@ -1,9 +1,7 @@
 rcis
 ====
 
-.. testsetup::
-
-    from rcis import *
-
-.. automodule:: rcis
+.. automodule:: rcis.rcis
     :members:
+    :show-inheritance:
+
