@@ -35,7 +35,7 @@ class Real:
         Args:
             file (str) :: file path where save x solution
         """        
-        f.open(file, 'w')  
+        f = open(file, 'w')  
         f.write(self.x)  
         f.close()  
 
