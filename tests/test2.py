@@ -202,7 +202,7 @@ def test_main(verbose=0):
         Call reverse communication.
         Then select action according to flag.flag and flag.info
         """
-        flags, sol, grad_desc = flags.new_reverse(grad_desc, data, sol)
+        flags, sol, grad_desc = flags.reverse_communication(grad_desc, data, sol)
         print("flag =", flags.flag)
 
         if flags.flag == 1:
