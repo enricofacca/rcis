@@ -50,21 +50,22 @@ class Parabola:
 
     def __init__(self, a, b=0, lb=-1e30, up=1e30):
         """
-        Constructor Parabola. 
+        Constructor Parabola.
         **Members**:
         """
-        
+
         #: (float): Parabola quadratic coefficient :math:`a \frac{x^2}{2}`
         self.a = a
         #: (float): Parabola linear coefficient :math:`b x`
         self.b = b
         #: (float): Lower bound for solution
         self.lower_bound = lb
-        
+
         self.upper_bound = up
         """ (float): Upper 
 
         bound for solution"""
+
     def energy(self, x):
         r"""The functional we are minimizing
 
@@ -162,14 +163,13 @@ class ParabolaDescent(Solver):
         else:
             ierr = -1
 
-
         # Here we simulate that an error occured
         self.infos.iterate_counter += 1
         if self.infos.iterate_counter % 10 == 0:
             ierr = 1
         if not ierr == 0:
             if self.ctrl.verbose >= 1:
-                print('An error occured')
+                print("An error occured")
 
         return solution, ierr, self
 
@@ -221,16 +221,18 @@ def test_main(verbose=0):
             solution.  Here we store the time, cpu, anf functional value"""
             if verbose >= 2:
                 print(flags.task_description(flags.flag))
-            
+
             energy = data.energy(sol.x)
             error = abs(sol.x - data.b / data.a)
             hystory.append(
-                cp([
-                    sol.time,
-                    grad_desc.infos,
-                    energy,
-                    error,
-                ])
+                cp(
+                    [
+                        sol.time,
+                        grad_desc.infos,
+                        energy,
+                        error,
+                    ]
+                )
             )
             if verbose:
                 print(
@@ -248,14 +250,13 @@ def test_main(verbose=0):
             """Here user have to set solver controls for next update"""
             if verbose >= 2:
                 print(flags.task_description(flags.flag))
-            
+
             grad_desc.ctrl.step = max(
                 min(grad_desc.ctrl.step * step_expansion, max_step), min_step
             )
             if verbose >= 2:
                 print("New time step", grad_desc.ctrl.step)
-        
-            
+
             # We copy data before update
             sol_old = cp(sol)
 
@@ -264,7 +265,7 @@ def test_main(verbose=0):
             update failure. We restore the start solution"""
             if verbose >= 2:
                 print(flags.task_description(flags.flag))
-            
+
             grad_desc.ctrl.step = max(
                 min(grad_desc.ctrl.step / step_contraction, max_step), min_step
             )

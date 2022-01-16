@@ -91,7 +91,7 @@ class CycleControls:
     def task_description(self, flag):
         """Produce a string describing the task associated to flag
         Args:
-            flag(int): Flag 
+            flag(int): Flag
         Returns:
             msg(str): Task description
         """
@@ -107,10 +107,6 @@ class CycleControls:
             msg = "Set problem input."
         return msg
 
-            
-            
-            
-            
     def reverse_communication(self, solver, problem, solution):
         """
         Subroutine to run reverse communition approach
@@ -200,7 +196,7 @@ class CycleControls:
                         + str(self.iterations + 1)
                         + " | RESTART = "
                         + str(self.restarts)
-                )
+                    )
 
             # update solution
             start_time = cputiming.time()
