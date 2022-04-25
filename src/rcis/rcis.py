@@ -1,6 +1,9 @@
 import time as cputiming
 from abc import ABC
 from abc import abstractmethod
+import numpy as np
+
+a=np.zeros(1)
 
 
 class Solver(ABC):
@@ -243,7 +246,7 @@ class CycleControls:
                     self.ierr = ierr
             elif ierr < 0:
                 # Solver return negative ierr to ask more inputs
-                self.flag = 6
+                self.flag = 5
                 self.ierr = ierr
 
             return self, solution, solver
