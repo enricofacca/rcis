@@ -10,7 +10,6 @@ sys.path.append(os.path.abspath("../src/"))
 from rcis import CycleControls
 
 
-
 class Real:
     """
     Class describing a problem solution on real line
@@ -129,7 +128,7 @@ class ParabolaDescent:
         # init infos
         self.infos = InfoDescent()
 
-    def syncronize(self, problem, solution):
+    def syncronize(self, problem, solution,ierr):
         """
         Since the there are no constrain
         the first procedure does nothing.
@@ -142,9 +141,7 @@ class ParabolaDescent:
         else:
             ierr = -1
 
-        return self, solution, ierr
-
-    def iterate(self, problem, solution):
+    def iterate(self, problem, solution, ierr):
         """
         The update is one step of gradient descent.
         Currently with explicit euler.
@@ -170,8 +167,6 @@ class ParabolaDescent:
         if not ierr == 0:
             if self.ctrl.verbose >= 1:
                 print("An error occured")
-
-        return solution, ierr, self
 
 
 def test_main(verbose=0):
@@ -201,22 +196,29 @@ def test_main(verbose=0):
     while flags.flag >= 0:
         """
         Call reverse communication.
-        Then select action according to flag.flag and flag.info
+        Then select action according to flag.flag and flag.ierr
         """
-        flags, sol, grad_desc = flags.reverse_communication(grad_desc, data, sol)
+        flags.reverse_communication_simple()
 
+        if verbose >= 2:
+            print(flags.flag)
+            print(flags.task_description(flags.flag))
+        
         if flags.flag == 1:
+            """Here user have shoudl runs iteration"""
+            grad_desc.iterate(data, sol, flags.ierr)
+
+        if flags.flag == 2:
             """Here the user evalutes if system reached convergence and
             and eventaully break the cycle"""
-            if verbose >= 2:
-                print(flags.task_description(flags.flag))
+            
 
             var = abs(sol.x - sol_old.x) / grad_desc.ctrl.step
             if var < 1e-4:
                 flags.flag = -1
                 flags.info = 0
 
-        if flags.flag == 2:
+        if flags.flag == 3:
             """Here the user can study anything combaining solver, problem, and
             solution.  Here we store the time, cpu, anf functional value"""
             if verbose >= 2:
@@ -246,20 +248,6 @@ def test_main(verbose=0):
                     abs(sol.x - data.b / data.a),
                 )
 
-        if flags.flag == 3:
-            """Here user have to set solver controls for next update"""
-            if verbose >= 2:
-                print(flags.task_description(flags.flag))
-
-            grad_desc.ctrl.step = max(
-                min(grad_desc.ctrl.step * step_expansion, max_step), min_step
-            )
-            if verbose >= 2:
-                print("New time step", grad_desc.ctrl.step)
-
-            # We copy data before update
-            sol_old = cp(sol)
-
         if flags.flag == 4:
             """Un error occured. Here user have to reset solver controls after
             update failure. We restore the start solution"""
@@ -275,11 +263,27 @@ def test_main(verbose=0):
             sol = cp(sol_old)
 
         if flags.flag == 5:
+            """Here user have to set solver controls for next update"""
+            if verbose >= 2:
+                print(flags.task_description(flags.flag))
+
+            grad_desc.ctrl.step = max(
+                min(grad_desc.ctrl.step * step_expansion, max_step), min_step
+            )
+            if verbose >= 2:
+                print("New time step", grad_desc.ctrl.step)
+
+            # We copy data before update
+            sol_old = cp(sol)
+
+        if flags.flag == 6:
             """Here user have to settle poblem inputs Nothing to do for this
             problem since inputs do not change along the iterations"""
             if verbose >= 2:
                 print(flags.task_description(flags.flag))
             pass
+
+        
 
     """ Unzip history for plotting"""
     times, infos, energies, errors = zip(*hystory)
