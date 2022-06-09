@@ -1,37 +1,14 @@
 import time as cputiming
-from abc import ABC
-from abc import abstractmethod
-import numpy as np
 
-a=np.zeros(1)
-
-
-class Solver(ABC):
-    """Abstract class with the **iterate** abstact method.
-
-    This class defines the interface of **iterate**.  Any child class
-    od Solver class will contain all variables, controls and procedure
-    for applying **iterate**.
-    """
-
-    @abstractmethod
-    def iterate(self, problem, solution):
-        """
-        Abstract interface for iterate procedure.
-
-        Args:
-            problem: Any class describing a problem.
-            solution: Any class describing a problem solution.
-
-        Returns:
-            self: We return the solver to get statistics
-            solution: Updated solution
-            ierr (int): Error flag.
-                ierr == 0 no error occured.
-                ierr != 0 solution may not be accurate.
-        """
-        return self, solution, ierr
-
+# associate a number to a task
+rcis_flag_break_for_error = -1 
+rcis_flag_begin = 0
+rcis_flag_iterate = 1
+rcis_flag_check_convergence = 2
+rcis_flag_study = 3
+rcis_flag_reset_controls_after_failure = 4
+rcis_flag_set_controls_next_update = 5
+rcis_flag_set_inputs = 6
 
 class CycleControls:
     """Class containg controls and infos to apply iterative solver.
@@ -90,6 +67,7 @@ class CycleControls:
         """
         #: float: Cpu conter
         self.cpu_time = 0
+        self.start_time = 0.0
 
     def task_description(self, flag):
         """Produce a string describing the task associated to flag
@@ -98,43 +76,40 @@ class CycleControls:
         Returns:
             msg(str): Task description
         """
-        if flag == 1:
+        if flag == rcis_flag_iterate:
+            msg = "Make one solver step"
+        if flag == rcis_flag_check_convergence:
             msg = "Compute if convergence is achieved. Set flag=-1 and ierr=0."
-        if flag == 2:
+        if flag == rcis_flag_study:
             msg = "Study system."
-        if flag == 3:
-            msg = "Set solver controls for next update."
-        if flag == 4:
+        if flag == rcis_flag_reset_controls_after_failure:
             msg = "Set solver controls after failure."
-        if flag == 5:
+        if flag == rcis_flag_set_controls_next_update:
+            msg = "Set solver controls for next update."       
+        if flag == rcis_flag_set_inputs:
             msg = "Set problem input."
         return msg
 
-    def reverse_communication(self, solver, problem, solution):
+
+    def reverse_communication_simple(self):
         """
         Subroutine to run reverse communition approach
         of iterative solver.
 
         Args:
-            solver (Solver): Class with iterate method
-            problem: Problem description
-            solution: Problem solution
+            self (CycleControls):  Counters and statistics
 
         Returns:
             self (CycleControls): Returning changed class.
-                Counters and statistics are changed.
-            solver (Solver): Class modified with statistics
-                             of application.
-            solution: Updated solution.
         """
-
-        if self.flag == 0:
+        
+        if self.flag == rcis_flag_begin:
             """Begin cycle. User can now study the system"""
-            self.flag = 2
+            self.flag = rcis_flag_study
             self.ierr = 0
-            return self, solution, solver
+            return
 
-        if self.flag == 1:
+        if self.flag == rcis_flag_check_convergence:
             """An iteration was completed and user checked if converge was
             achieved and decided to continue.  We check if iteration
             number exceeded the maximum. If yes we break the cycle
@@ -142,41 +117,33 @@ class CycleControls:
             the stystem.
             """
             if self.iterations >= self.max_iterations:
-                self.flag = -1
+                self.flag = rcis_flag_break_for_error
                 if self.verbose >= 1:
                     print("Update Number exceed limits" + str(self.max_iterations))
-                # break cycle
-                return self, solution, solver
 
             # we tell the user that he/she can studies the Let the use
             # study the system
             self.restarts = 0  # we reset the count of restart
-            self.flag = 2
+            self.flag = rcis_flag_study
             self.ierr = 0
-            return self, solution, solver
+            return
 
-        if self.flag == 2:
+        if self.flag == rcis_flag_study:
             """User studied the updated system.
             Now, we need solver controls for next update."""
-            self.flag = 3
+            self.flag = rcis_flag_set_controls_next_update
             self.ierr = 0
-            return self, solution, solver
+            return
 
-        if self.flag == 4:
-            """And error occured after update.  Now, user must change the solver
-            controls for trying further iteration"""
-            self.flag = 5
-            self.ierr = 0
-            return self, solution, solver
-
-        if (self.flag == 3) or (self.flag == 5):
+        if ((self.flag == rcis_flag_set_controls_next_update) or
+            (self.flag == rcis_flag_reset_controls_after_failure)):
             """User set or reset solver controls.  Now, use must set new problem
             inputs, if required"""
-            self.flag = 6
+            self.flag = rcis_flag_set_inputs
             self.ierr = 0
-            return self, solution, solver
+            return
 
-        if self.flag == 6:
+        if self.flag == rcis_flag_set_inputs:
             """User set/reset solver controls and problem inputs
             Now we update try to iterate"""
             self.ierr = 0
@@ -189,6 +156,8 @@ class CycleControls:
             # reset controls (flag == 2 + ierr=-1 ).
 
             if self.restarts == 0:
+                # reset cpu time counter
+                self.cpu_wasted = 0.0
                 if self.verbose >= 1:
                     print(" ")
                     print("UPDATE " + str(self.iterations + 1))
@@ -202,16 +171,20 @@ class CycleControls:
                     )
 
             # update solution
-            start_time = cputiming.time()
-            [solution, ierr, solver] = solver.iterate(problem, solution)
-            cpu_update = cputiming.time() - start_time
+            self.start_time = cputiming.time()
+            # call update
+            self.flag = rcis_flag_iterate
+            return
+
+        if (self.flag == rcis_flag_iterate):
+            cpu_update = cputiming.time() - self.start_time
 
             # different action according to ierr
-            if ierr == 0:
+            if self.ierr == 0:
                 """Succesfull update"""
 
                 self.iterations += 1
-                self.cpu_time += cputiming.time() - start_time
+                self.cpu_time += cputiming.time() - self.start_time
                 if self.verbose >= 1:
                     if self.restarts == 0:
                         print("UPDATE SUCCEED CPU = " + "{:.2f}".format(cpu_update))
@@ -225,28 +198,35 @@ class CycleControls:
                         print(" ")
 
                 """ Ask to the user to evalute if stop cycling """
-                self.flag = 1
+                self.flag = rcis_flag_check_convergence
                 self.ierr = 0
 
-            elif ierr > 0:
+            elif self.ierr > 0:
                 """Update failed"""
                 if self.verbose >= 1:
                     print("UPDATE FAILURE")
+
+                # sum the cpu wasted
+                self.cpu_wasted += cpu_update
 
                 # Try one restart more
                 self.restarts += 1
 
                 # Stop if number max restart update is passed
                 if self.restarts >= self.max_restarts:
-                    self.flag = -1  # breaking cycle
-                    self.ierr = ierr
+                    self.flag = rcis_flag_break_for_error  # breaking cycle
                 else:
                     # Ask the user to reset controls and problem inputs
-                    self.flag = 4
-                    self.ierr = ierr
-            elif ierr < 0:
+                    self.flag = rcis_flag_reset_controls_after_failure
+            elif self.ierr < 0:
                 # Solver return negative ierr to ask more inputs
-                self.flag = 5
-                self.ierr = ierr
+                self.flag = rcis_flag_set_inputs
+            return
 
-            return self, solution, solver
+        def cpu_statistics(self,list_cpu_update,list_cpu_wasted):
+            """Function to create a list with cpu_update and cpu_wasted by 
+            each updatex.
+            Call it at rcis_flag_study 
+            """
+            list_cpu_update.append(flag.cpu_time-list_cpu_udapte.append[-1])
+            list_cpu_wasted.append(flag.cpu_wasted)
