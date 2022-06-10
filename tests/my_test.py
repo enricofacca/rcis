@@ -200,7 +200,7 @@ def test_main(verbose=0):
         Call reverse communication.
         Then select action according to flag.flag and flag.ierr
         """
-        flags.reverse_communication_simple()
+        flags.reverse_communication()
 
         if verbose >= 2:
             print(flags.flag)

@@ -14,16 +14,12 @@ rcis_flag_set_inputs = 6
 class CycleControls:
     """Class containg controls and infos to apply iterative solver.
 
-    This class contains the variable and reverse communicaiton method
-    for applying iteratively a solver to find a solution of given a
-    problem. Constructor procedure setting main controls (e.g.,
-    maximum iterations number, verbosity) and setting to zero counter
-    variables (e.g. number of iterations performed)
-
-    Args:
-        max_iter (int) : maximum iterations number
-        max_restart (int): maximum restart number
-        verbose (int): verbosity
+    This class contains variables and a reverse
+    communicaiton method for applying iterative a
+    solver. Constructor procedure setting main controls
+    (e.g., maximum iterations number, verbosity) and setting
+    to zero counter variables (e.g. number of iterations
+    performed)
     """
 
     def __init__(self, max_iterations=1000, max_restarts=10, verbose=0):
@@ -92,7 +88,7 @@ class CycleControls:
         return msg
 
 
-    def reverse_communication_simple(self):
+    def reverse_communication(self):
         """
         Subroutine to run reverse communition approach
         of iterative solver.
