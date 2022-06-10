@@ -10,6 +10,7 @@ rcis_flag_reset_controls_after_failure = 4
 rcis_flag_set_controls_next_update = 5
 rcis_flag_set_inputs = 6
 
+
 class CycleControls:
     """Class containg controls and infos to apply iterative solver.
 
@@ -223,10 +224,10 @@ class CycleControls:
                 self.flag = rcis_flag_set_inputs
             return
 
-        def cpu_statistics(self,list_cpu_update,list_cpu_wasted):
+        def cpu_statistics(self, list_cpu_update, list_cpu_wasted):
             """Function to create a list with cpu_update and cpu_wasted by 
             each updatex.
             Call it at rcis_flag_study 
             """
-            list_cpu_update.append(flag.cpu_time-list_cpu_udapte.append[-1])
-            list_cpu_wasted.append(flag.cpu_wasted)
+            list_cpu_update.append(self.cpu_time - list_cpu_update.append[-1])
+            list_cpu_wasted.append(self.cpu_wasted)

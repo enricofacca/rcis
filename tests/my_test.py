@@ -128,7 +128,7 @@ class ParabolaDescent:
         # init infos
         self.infos = InfoDescent()
 
-    def syncronize(self, problem, solution,ierr):
+    def syncronize(self, problem, solution, ierr):
         """
         Since the there are no constrain
         the first procedure does nothing.
@@ -136,7 +136,8 @@ class ParabolaDescent:
 
         # example of how the setup of our problem
         # can influence solver execution
-        if solution.x >= problem.lower_bound and solution.x <= problem.upper_bound:
+        if ((solution.x >= problem.lower_bound) and
+            (solution.x <= problem.upper_bound)):
             ierr = 0
         else:
             ierr = -1
@@ -191,6 +192,7 @@ def test_main(verbose=0):
     step_contraction = 1.1
 
     # list to store
+    grad_desc.syncronize(data, sol, flags.ierr)
     sol_old = cp(sol)
     hystory = []
     while flags.flag >= 0:
@@ -212,7 +214,6 @@ def test_main(verbose=0):
             """Here the user evalutes if system reached convergence and
             and eventaully break the cycle"""
             
-
             var = abs(sol.x - sol_old.x) / grad_desc.ctrl.step
             if var < 1e-4:
                 flags.flag = -1
@@ -282,8 +283,6 @@ def test_main(verbose=0):
             if verbose >= 2:
                 print(flags.task_description(flags.flag))
             pass
-
-        
 
     """ Unzip history for plotting"""
     times, infos, energies, errors = zip(*hystory)
