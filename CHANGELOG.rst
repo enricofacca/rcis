@@ -2,6 +2,11 @@
 Changelog
 =========
 
+1.0.0 (2022-06-10)
+------------------
+
+* Reverse communication without abstract classes.
+
 0.2.0 (2022-01-16)
 ------------------
 
